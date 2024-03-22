@@ -1,4 +1,4 @@
-mod ERC4626;
+mod erc4626;
 #[cfg(test)]
 mod tests;
 mod utils;
