@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod ERC4626 {
-use erc4626::ERC4626::interface::{
+use erc4626::erc4626::interface::{
         IERC4626, IERC4626Additional, IERC4626Snake, IERC4626Camel, IERC4626Metadata
     };
     use erc4626::utils::{pow_256};
