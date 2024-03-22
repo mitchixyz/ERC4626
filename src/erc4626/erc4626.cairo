@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod ERC4626 {
-use erc4626::erc4626::interface::{
+    use erc4626::erc4626::interface::{
         IERC4626, IERC4626Additional, IERC4626Snake, IERC4626Camel, IERC4626Metadata
     };
     use erc4626::utils::{pow_256};
@@ -76,21 +76,23 @@ use erc4626::erc4626::interface::{
     }
 
 
-    #[abi(embed_v0)]
-    impl ERC4626Additional of IERC4626Additional<ContractState> {
-        fn asset(self: @ContractState) -> ContractAddress {
+    #[embeddable_as(ERC4626AdditionalImpl)]
+    impl ERC4626Additional<
+        TContractState, +HasComponent<TContractState>
+    > of IERC4626Additional<ComponentState<TContractState>> {
+        fn asset(self: @ComponentState<TContractState>) -> ContractAddress {
             self.asset.read()
         }
 
-        fn convert_to_assets(self: @ContractState, shares: u256) -> u256 {
+        fn convert_to_assets(self: @ComponentState<TContractState>, shares: u256) -> u256 {
             self._convert_to_assets(shares, false)
         }
 
-        fn convert_to_shares(self: @ContractState, assets: u256) -> u256 {
+        fn convert_to_shares(self: @ComponentState<TContractState>, assets: u256) -> u256 {
             self._convert_to_shares(assets, false)
         }
 
-        fn deposit(ref self: ContractState, assets: u256, receiver: ContractAddress) -> u256 {
+        fn deposit(ref self: ComponentState<TContractState>, assets: u256, receiver: ContractAddress) -> u256 {
             let max_assets = self.max_deposit(receiver);
             assert(max_assets >= assets, Errors::EXCEEDED_MAX_DEPOSIT);
 
@@ -101,24 +103,24 @@ use erc4626::erc4626::interface::{
             shares
         }
 
-        fn max_deposit(self: @ContractState, address: ContractAddress) -> u256 {
+        fn max_deposit(self: @ComponentState<TContractState>, address: ContractAddress) -> u256 {
             BoundedU256::max()
         }
 
-        fn max_mint(self: @ContractState, receiver: ContractAddress) -> u256 {
+        fn max_mint(self: @ComponentState<TContractState>, receiver: ContractAddress) -> u256 {
             BoundedU256::max()
         }
 
-        fn max_redeem(self: @ContractState, owner: ContractAddress) -> u256 {
+        fn max_redeem(self: @ComponentState<TContractState>, owner: ContractAddress) -> u256 {
             self.balance_of(owner)
         }
 
-        fn max_withdraw(self: @ContractState, owner: ContractAddress) -> u256 {
+        fn max_withdraw(self: @ComponentState<TContractState>, owner: ContractAddress) -> u256 {
             let balance = self.balance_of(owner);
             self._convert_to_assets(balance, false)
         }
 
-        fn mint(ref self: ContractState, shares: u256, receiver: ContractAddress) -> u256 {
+        fn mint(ref self: ComponentState<TContractState>, shares: u256, receiver: ContractAddress) -> u256 {
             let max_shares = self.max_mint(receiver);
             assert(max_shares >= shares, Errors::EXCEEDED_MAX_MINT);
 
@@ -129,24 +131,24 @@ use erc4626::erc4626::interface::{
             assets
         }
 
-        fn preview_deposit(self: @ContractState, assets: u256) -> u256 {
+        fn preview_deposit(self: @ComponentState<TContractState>, assets: u256) -> u256 {
             self._convert_to_shares(assets, false)
         }
 
-        fn preview_mint(self: @ContractState, shares: u256) -> u256 {
+        fn preview_mint(self: @ComponentState<TContractState>, shares: u256) -> u256 {
             self._convert_to_assets(shares, true)
         }
 
-        fn preview_redeem(self: @ContractState, shares: u256) -> u256 {
+        fn preview_redeem(self: @ComponentState<TContractState>, shares: u256) -> u256 {
             self._convert_to_assets(shares, false)
         }
 
-        fn preview_withdraw(self: @ContractState, assets: u256) -> u256 {
+        fn preview_withdraw(self: @ComponentState<TContractState>, assets: u256) -> u256 {
             self._convert_to_shares(assets, true)
         }
 
         fn redeem(
-            ref self: ContractState, shares: u256, receiver: ContractAddress, owner: ContractAddress
+            ref self: ComponentState<TContractState>, shares: u256, receiver: ContractAddress, owner: ContractAddress
         ) -> u256 {
             let max_shares = self.max_redeem(owner);
             assert(shares <= max_shares, Errors::EXCEEDED_MAX_REDEEM);
@@ -157,13 +159,13 @@ use erc4626::erc4626::interface::{
             assets
         }
 
-        fn total_assets(self: @ContractState) -> u256 {
+        fn total_assets(self: @ComponentState<TContractState>) -> u256 {
             let dispatcher = ERC20ABIDispatcher { contract_address: self.asset.read() };
             dispatcher.balance_of(get_contract_address())
         }
 
         fn withdraw(
-            ref self: ContractState, assets: u256, receiver: ContractAddress, owner: ContractAddress
+            ref self: ComponentState<TContractState>, assets: u256, receiver: ContractAddress, owner: ContractAddress
         ) -> u256 {
             let max_assets = self.max_withdraw(owner);
             assert(assets <= max_assets, Errors::EXCEEDED_MAX_WITHDRAW);
