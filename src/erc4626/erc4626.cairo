@@ -179,41 +179,45 @@ mod ERC4626 {
     }
 
 
-    #[abi(embed_v0)]
-    impl MetadataEntrypoints of IERC4626Metadata<ContractState> {
-        fn name(self: @ContractState) -> ByteArray {
+    #[embeddable_as(MetadataEntrypointsImpl)]
+    impl MetadataEntrypoints<
+        TContractState, +HasComponent<TContractState>
+    > of IERC4626Metadata<ComponentState<TContractState>> {
+        fn name(self: @ComponentState<TContractState>) -> ByteArray {
             self.erc20.name()
         }
-        fn symbol(self: @ContractState) -> ByteArray {
+        fn symbol(self: @ComponentState<TContractState>) -> ByteArray {
             self.erc20.symbol()
         }
-        fn decimals(self: @ContractState) -> u8 {
+        fn decimals(self: @ComponentState<TContractState>) -> u8 {
             self.underlying_decimals.read() + self._decimals_offset()
         }
     }
 
-    #[abi(embed_v0)]
-    impl SnakeEntrypoints of IERC4626Snake<ContractState> {
-        fn total_supply(self: @ContractState) -> u256 {
+    #[embeddable_as(SnakeEntrypointsImpl)]
+    impl SnakeEntrypoints<
+        TContractState, +HasComponent<TContractState>
+    > of IERC4626Snake<ComponentState<TContractState>> {
+        fn total_supply(self: @ComponentState<TContractState>) -> u256 {
             self.erc20.total_supply()
         }
 
-        fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
+        fn balance_of(self: @ComponentState<TContractState>, account: ContractAddress) -> u256 {
             self.erc20.balance_of(account)
         }
 
         fn allowance(
-            self: @ContractState, owner: ContractAddress, spender: ContractAddress
+            self: @ComponentState<TContractState>, owner: ContractAddress, spender: ContractAddress
         ) -> u256 {
             self.erc20.allowance(owner, spender)
         }
 
-        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
+        fn transfer(ref self: ComponentState<TContractState>, recipient: ContractAddress, amount: u256) -> bool {
             self.erc20.transfer(recipient, amount)
         }
 
         fn transfer_from(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             sender: ContractAddress,
             recipient: ContractAddress,
             amount: u256
@@ -221,22 +225,24 @@ mod ERC4626 {
             self.erc20.transfer_from(sender, recipient, amount)
         }
 
-        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
+        fn approve(ref self: ComponentState<TContractState>, spender: ContractAddress, amount: u256) -> bool {
             self.erc20.approve(spender, amount)
         }
     }
 
-    #[abi(embed_v0)]
-    impl CamelEntrypoints of IERC4626Camel<ContractState> {
-        fn totalSupply(self: @ContractState) -> u256 {
+    #[embeddable_as(CamelEntrypointsImpl)]
+    impl CamelEntrypoints<
+        TContractState, +HasComponent<TContractState>
+    > of IERC4626Camel<ComponentState<TContractState>> {
+        fn totalSupply(self: @ComponentState<TContractState>) -> u256 {
             self.total_supply()
         }
-        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+        fn balanceOf(self: @ComponentState<TContractState>, account: ContractAddress) -> u256 {
             self.balance_of(account)
         }
 
         fn transferFrom(
-            ref self: ContractState,
+            ref self: ComponentState<TContractState>,
             sender: ContractAddress,
             recipient: ContractAddress,
             amount: u256
