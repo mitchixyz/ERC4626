@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod ERC4626 {
-    use erc4626::erc4626::interface::{
+use erc4626::ERC4626::interface::{
         IERC4626, IERC4626Additional, IERC4626Snake, IERC4626Camel, IERC4626Metadata
     };
     use erc4626::utils::{pow_256};
@@ -65,7 +65,7 @@ mod ERC4626 {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, asset: ContractAddress, name: felt252, symbol: felt252, offset: u8
+        ref self: ContractState, asset: ContractAddress, name: ByteArray, symbol: ByteArray, offset: u8
     ) {
         let dispatcher = ERC20ABIDispatcher { contract_address: asset };
         self.offset.write(offset);
@@ -179,10 +179,10 @@ mod ERC4626 {
 
     #[abi(embed_v0)]
     impl MetadataEntrypoints of IERC4626Metadata<ContractState> {
-        fn name(self: @ContractState) -> felt252 {
+        fn name(self: @ContractState) -> ByteArray {
             self.erc20.name()
         }
-        fn symbol(self: @ContractState) -> felt252 {
+        fn symbol(self: @ContractState) -> ByteArray {
             self.erc20.symbol()
         }
         fn decimals(self: @ContractState) -> u8 {
