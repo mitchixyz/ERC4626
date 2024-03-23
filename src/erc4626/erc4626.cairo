@@ -61,7 +61,7 @@ mod ERC4626 {
     #[embeddable_as(ERC4626AdditionalImpl)]
     impl ERC4626Additional<
         TContractState, +HasComponent<TContractState>,
-        +ERC20Component::HasComponent<TContractState>,
+        impl erc20: ERC20Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626Additional<ComponentState<TContractState>> {
         fn asset(self: @ComponentState<TContractState>) -> ContractAddress {
