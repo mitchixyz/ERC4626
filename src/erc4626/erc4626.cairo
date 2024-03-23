@@ -1,16 +1,20 @@
 #[starknet::component]
 mod ERC4626 {
+    use openzeppelin::introspection::interface::{ISRC5Dispatcher, ISRC5DispatcherTrait};
+    use openzeppelin::introspection::src5::SRC5Component::InternalTrait as SRC5InternalTrait;
+    use openzeppelin::introspection::src5::SRC5Component::SRC5;
+    use openzeppelin::introspection::src5::SRC5Component;
+    
     use erc4626::erc4626::interface::{
         IERC4626Additional, IERC4626Snake, IERC4626Camel, IERC4626Metadata
     };
-    use openzeppelin::token::erc20::ERC20Component::InternalTrait as ERC20InternalTrait;
-
     use erc4626::utils::{pow_256};
     use integer::BoundedU256;
     use openzeppelin::token::erc20::interface::{
         IERC20, IERC20Metadata, ERC20ABIDispatcher, ERC20ABIDispatcherTrait
     };
     use openzeppelin::token::erc20::{ERC20Component, ERC20Component::Errors as ERC20Errors};
+    use openzeppelin::token::erc20::ERC20Component::InternalTrait as ERC20InternalTrait;
 
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
 
@@ -61,7 +65,8 @@ mod ERC4626 {
     #[embeddable_as(ERC4626AdditionalImpl)]
     impl ERC4626Additional<
         TContractState, +HasComponent<TContractState>,
-        impl erc20: ERC20Component::HasComponent<TContractState>,
+        +ERC20Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626Additional<ComponentState<TContractState>> {
         fn asset(self: @ComponentState<TContractState>) -> ContractAddress {
@@ -167,6 +172,7 @@ mod ERC4626 {
     impl MetadataEntrypoints<
         TContractState, +HasComponent<TContractState>,
         impl erc20: ERC20Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626Metadata<ComponentState<TContractState>> {
         fn name(self: @ComponentState<TContractState>) -> ByteArray {
@@ -186,6 +192,7 @@ mod ERC4626 {
     impl SnakeEntrypoints<
         TContractState, +HasComponent<TContractState>,
         impl erc20: ERC20Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626Snake<ComponentState<TContractState>> {
         fn total_supply(self: @ComponentState<TContractState>) -> u256 {
@@ -230,6 +237,7 @@ mod ERC4626 {
     impl CamelEntrypoints<
         TContractState, +HasComponent<TContractState>,
         +ERC20Component::HasComponent<TContractState>,
+        +SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of IERC4626Camel<ComponentState<TContractState>> {
         fn totalSupply(self: @ComponentState<TContractState>) -> u256 {
@@ -253,6 +261,7 @@ mod ERC4626 {
     impl InternalImpl<
         TContractState, +HasComponent<TContractState>,
         impl erc20: ERC20Component::HasComponent<TContractState>,
+        impl src5: SRC5Component::HasComponent<TContractState>,
         +Drop<TContractState>
     > of InternalImplTrait<TContractState> {
         fn initializer(
@@ -265,6 +274,11 @@ mod ERC4626 {
             erc20_comp_mut.initializer(name, symbol);
             self.asset.write(asset);
             self.underlying_decimals.write(decimals);
+
+            // ! To register interface
+            // let mut src5_component = get_dep_component_mut!(ref self, src5);
+            // src5_component.register_interface(interface::IERC721_ID);
+            // src5_component.register_interface(interface::IERC721_METADATA_ID);
         }
         
         fn _convert_to_assets(self: @ComponentState<TContractState>, shares: u256, round: bool) -> u256 {
