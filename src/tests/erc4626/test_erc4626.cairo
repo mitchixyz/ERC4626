@@ -1,6 +1,6 @@
 use core::traits::TryInto;
 use debug::PrintTrait;
-use erc4626::erc4626::{IERC4626Dispatcher, IERC4626DispatcherTrait};
+use erc4626::erc4626::interface::{IERC4626Dispatcher, IERC4626DispatcherTrait};
 use erc4626::utils::{pow_256};
 use integer::BoundedU256;
 use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
@@ -34,7 +34,7 @@ fn VAULT_ADDRESS() -> ContractAddress {
 }
 
 fn deploy_token() -> (ERC20ABIDispatcher, ContractAddress) {
-    let token = declare('ERC20Token');
+    let token = declare("ERC20Token");
     let mut calldata = Default::default();
     Serde::serialize(@OWNER(), ref calldata);
     Serde::serialize(@INITIAL_SUPPLY(), ref calldata);
@@ -51,7 +51,7 @@ fn deploy_contract() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
     params.append('Vault Mock Token');
     params.append('vltMCK');
     params.append(8);
-    let vault = declare('ERC4626');
+    let vault = declare("ERC4626");
     let contract_address = vault.deploy_at(@params, VAULT_ADDRESS()).unwrap();
     (token, IERC4626Dispatcher { contract_address })
 }
