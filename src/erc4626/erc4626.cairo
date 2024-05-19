@@ -11,9 +11,13 @@ mod ERC4626Component {
     use erc4626::utils::{pow_256};
     use integer::BoundedU256;
     use openzeppelin::token::erc20::interface::{
-        IERC20, IERC20Metadata, ERC20ABIDispatcher, ERC20ABIDispatcherTrait
+        IERC20, IERC20Metadata, ERC20ABIDispatcher, ERC20ABIDispatcherTrait,
     };
-    use openzeppelin::token::erc20::{ERC20Component, ERC20Component::Errors as ERC20Errors};
+    use openzeppelin::token::erc20::{
+        ERC20Component,
+        ERC20HooksEmptyImpl, 
+        ERC20Component::Errors as ERC20Errors
+    };
     use openzeppelin::token::erc20::ERC20Component::InternalTrait as ERC20InternalTrait;
 
     use starknet::{ContractAddress, get_caller_address, get_contract_address};

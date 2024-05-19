@@ -3,7 +3,7 @@
 #[starknet::contract]
 mod ERC20Token {
     use openzeppelin::access::ownable::OwnableComponent;
-    use openzeppelin::token::erc20::ERC20Component;
+    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::ContractAddress;
     use starknet::get_caller_address;
 
