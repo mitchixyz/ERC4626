@@ -1,11 +1,16 @@
-use core::traits::TryInto;
-use debug::PrintTrait;
 use erc4626::erc4626::interface::{IERC4626Dispatcher, IERC4626DispatcherTrait};
 use erc4626::utils::{pow_256};
+
+use core::traits::TryInto;
+use debug::PrintTrait;
+
+use snforge_std::byte_array::try_deserialize_bytearray_error;
+
 use integer::BoundedU256;
 use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
 use snforge_std::{
-    declare, ContractClassTrait, start_cheat_caller_address, stop_cheat_caller_address
+    declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
+    stop_cheat_caller_address
 };
 use openzeppelin::utils::serde::SerializedAppend;
 use starknet::{ContractAddress, contract_address_const, get_contract_address};
@@ -37,12 +42,12 @@ fn VAULT_ADDRESS() -> ContractAddress {
 
 fn deploy_token() -> (ERC20ABIDispatcher, ContractAddress) {
     let token_result = declare("ERC20Token");
-    let token = token_result.unwrap();
+    let token = token_result.unwrap().contract_class();
     let mut calldata = Default::default();
     Serde::serialize(@OWNER(), ref calldata);
     Serde::serialize(@INITIAL_SUPPLY(), ref calldata);
 
-    let (address, _) = token.deploy_at(@calldata, TOKEN_ADDRESS()).unwrap();
+    let (address, _) = token.deploy(@calldata).unwrap();
     let dispatcher = ERC20ABIDispatcher { contract_address: address };
     (dispatcher, address)
 }
@@ -56,9 +61,8 @@ fn deploy_contract() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
     calldata.append_serde(name);
     calldata.append_serde(symbol);
     calldata.append(0);
-    let vault_result = declare("ERC4626");
-    let vault = vault_result.unwrap();
-    let (contract_address, _) = vault.deploy_at(@calldata, VAULT_ADDRESS()).unwrap();
+    let vault = declare("ERC4626").unwrap().contract_class();
+    let (contract_address, _) = vault.deploy(@calldata).unwrap();
     (token, IERC4626Dispatcher { contract_address })
 }
 

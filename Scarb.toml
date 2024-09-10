@@ -4,7 +4,12 @@ version = "0.1.0"
 
 [dependencies]
 openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", branch = "main"}
-starknet = ">=2.6.4"
+starknet = ">=2.8.2"
+
+
+[dev-dependencies]
+cairo_test = "2.8.2"
+snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.30.0" }
 
 [lib]
 
