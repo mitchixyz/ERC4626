@@ -52,11 +52,11 @@ fn deploy_token() -> (ERC20ABIDispatcher, ContractAddress) {
     (dispatcher, address)
 }
 
-fn deploy_contract() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
+fn deploy_vault() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
     let (token, token_address) = deploy_token();
     let mut calldata = array![];
-    let name: ByteArray = "Vault Mock Token";
-    let symbol: ByteArray = "vltMCK";
+    let name: ByteArray = "Mock Token";
+    let symbol: ByteArray = "MCK";
     calldata.append_serde(token_address);
     calldata.append_serde(name);
     calldata.append_serde(symbol);
@@ -66,18 +66,34 @@ fn deploy_contract() -> (ERC20ABIDispatcher, IERC4626Dispatcher) {
     (token, IERC4626Dispatcher { contract_address })
 }
 
+fn deploy_vault_temp(
+    token: ERC20ABIDispatcher, token_address: ContractAddress
+) -> IERC4626Dispatcher {
+    let contract = declare("ERC4626").unwrap().contract_class();
+    let mut calldata = array![];
+    let name: ByteArray = "Mock Token";
+    let symbol: ByteArray = "MCK";
+    calldata.append_serde(token_address);
+    calldata.append_serde(name);
+    calldata.append_serde(symbol);
+    calldata.append(0);
+    let (contract_address, _) = contract.deploy(@calldata).unwrap();
+    let vault = IERC4626Dispatcher { contract_address };
+    vault
+}
+
 #[test]
 fn test_constructor() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     assert(vault.asset() == asset.contract_address, 'invalid asset');
     assert(vault.decimals() == (18 + 0), 'invalid decimals');
-    assert(vault.name() == "Vault Mock Token", 'invalid name');
-    assert(vault.symbol() == "vltMCK", 'invalid symbol');
+    assert(vault.name() == "Mock Token", 'invalid name');
+    assert(vault.symbol() == "MCK", 'invalid symbol');
 }
 
 #[test]
 fn convert_to_assets() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     let shares = pow_256(10, 2);
     // 10e10 * (0 + 1) / (0 + 10e8)
     assert(vault.convert_to_assets(shares) == 100, 'invalid assets');
@@ -85,7 +101,7 @@ fn convert_to_assets() {
 
 #[test]
 fn convert_to_shares() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     let assets = 10;
     // asset * shares / total assets
     // 10 * (0 + 10e8) / (0 + 1)
@@ -94,7 +110,7 @@ fn convert_to_shares() {
 
 #[test]
 fn max_deposit() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(
         vault.max_deposit(get_contract_address()) == BoundedU256::max(), 'invalid max
     deposit'
@@ -103,37 +119,37 @@ fn max_deposit() {
 
 #[test]
 fn max_mint() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(vault.max_mint(get_contract_address()) == BoundedU256::max(), 'invalid max mint');
 }
 
 #[test]
 fn preview_deposit() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(vault.preview_deposit(10) == pow_256(10, 1), 'invalid preview_deposit');
 }
 
 #[test]
 fn preview_mint() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(vault.preview_mint(pow_256(10, 2)) == 100, 'invalid preview_mint');
 }
 
 #[test]
 fn preview_redeem() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(vault.preview_redeem(pow_256(10, 2)) == 100, 'invalid preview_redeem');
 }
 
 #[test]
 fn preview_withdraw() {
-    let (_asset, vault) = deploy_contract();
+    let (_asset, vault) = deploy_vault();
     assert(vault.preview_redeem(pow_256(10, 2)) == 100, 'invalid preview_withdraw');
 }
 
 #[test]
 fn test_deposit() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
@@ -146,7 +162,7 @@ fn test_deposit() {
 
 #[test]
 fn test_max_redeem() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
@@ -159,7 +175,7 @@ fn test_max_redeem() {
 
 #[test]
 fn max_withdraw() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
@@ -173,7 +189,7 @@ fn max_withdraw() {
 
 #[test]
 fn mint() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
@@ -187,7 +203,7 @@ fn mint() {
 
 #[test]
 fn test_redeem() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
@@ -204,7 +220,7 @@ fn test_redeem() {
 
 #[test]
 fn test_withdraw() {
-    let (asset, vault) = deploy_contract();
+    let (asset, vault) = deploy_vault();
     let amount = asset.balanceOf(OWNER());
     start_cheat_caller_address(asset.contract_address, OWNER());
     asset.approve(vault.contract_address, amount);
